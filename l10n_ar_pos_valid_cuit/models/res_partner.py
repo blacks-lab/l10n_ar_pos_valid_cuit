@@ -53,7 +53,7 @@ def validar_cuit(cuit):
 
 def validate_chars(cuit):
     """Valida si la información pasada por parámetro es adecuada.
-    Caracteres válidos (0-9-.\s)
+    Caracteres válidos (0-9-. y espacios)
     """
     try:
         regex = re.compile(r'^([0-9\-\.\s]+)$')
