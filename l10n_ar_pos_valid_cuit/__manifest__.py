@@ -18,7 +18,9 @@
             "l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js",
         ],
     },
-    "data": [],
+    "data": [
+        "views/pos_config_views.xml",
+    ],
     "demo": [],
     "auto_install": False,
 }

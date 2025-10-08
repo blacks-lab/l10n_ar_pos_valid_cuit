@@ -12,12 +12,21 @@ patch(PartnerDetailsEdit.prototype, {
         this.changes.vat = this.props.partner.vat;
     },
     saveChanges() {
-        // VALIDACIÓN 1: Campo requerido
-        if (!this.changes.vat) {
+        // Verificar si la validación CUIT está habilitada en la configuración
+        const validateCuit = this.pos.config.validate_cuit;
+        const validatePadronA5 = this.pos.config.validate_padron_a5;
+        
+        // VALIDACIÓN 1: Campo requerido (solo si validación está habilitada)
+        if (validateCuit && !this.changes.vat) {
             return this.popup.add(ErrorPopup, {
                 title: _t("Información Faltante"),
                 body: _t("El CUIT es obligatorio"),
             });
+        }
+        
+        // Si validación CUIT no está habilitada, continuar normalmente
+        if (!validateCuit) {
+            return super.saveChanges.call(this);
         }
         
         // VALIDACIÓN 2: Validar CUIT argentino completo
@@ -36,15 +45,21 @@ patch(PartnerDetailsEdit.prototype, {
                             });
                         });
                 } else {
-                    // CUIT válido - normalizar (sin guiones) y guardar
-                    this.pos.orm
-                        .call("res.partner", "normalize_cuit", [this.changes.vat])
-                        .then((normalized_cuit) => {
-                            // Actualizar con CUIT sin guiones
-                            this.changes.vat = normalized_cuit;
-                            // Continuar con el guardado
-                            super.saveChanges.call(this);
+                    // CUIT válido - verificar si debe validar con Padrón A5
+                    if (validatePadronA5) {
+                        // Mostrar mensaje de "En desarrollo" para Padrón A5
+                        this.popup.add(ErrorPopup, {
+                            title: _t("Validación Padrón A5"),
+                            body: _t("La validación con Padrón A5 está en desarrollo.\nEl CUIT es válido y se guardará normalmente."),
                         });
+                        // Continuar con el guardado después del mensaje
+                        setTimeout(() => {
+                            this.finalizeSave();
+                        }, 2000); // Espera 2 segundos para mostrar el mensaje
+                    } else {
+                        // Solo validación CUIT - proceder directamente
+                        this.finalizeSave();
+                    }
                 }
             })
             .catch((error) => {
@@ -53,6 +68,18 @@ patch(PartnerDetailsEdit.prototype, {
                     title: _t("Error de Validación"),
                     body: _t("Error al validar CUIT: ") + error.message,
                 });
+            });
+    },
+    
+    finalizeSave() {
+        // Normalizar CUIT (sin guiones) y guardar
+        this.pos.orm
+            .call("res.partner", "normalize_cuit", [this.changes.vat])
+            .then((normalized_cuit) => {
+                // Actualizar con CUIT sin guiones
+                this.changes.vat = normalized_cuit;
+                // Continuar con el guardado
+                super.saveChanges.call(this);
             });
     },
 });

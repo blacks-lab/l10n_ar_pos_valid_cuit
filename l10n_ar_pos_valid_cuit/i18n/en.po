@@ -17,17 +17,41 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: l10n_ar_pos_valid_cuit
+#: model:pos.config,validate_cuit:0
+msgid "Validar CUIT"
+msgstr "Validate Tax ID"
+
+#. module: l10n_ar_pos_valid_cuit
+#: model:pos.config,validate_padron_a5:0
+msgid "Validar con Padrón A5"
+msgstr "Validate with A5 Registry"
+
+#. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "Información Faltante"
 msgstr "Missing Information"
 
 #. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "El CUIT es obligatorio"
 msgstr "Tax ID is required"
 
 #. module: l10n_ar_pos_valid_cuit
-msgid "Procesando"
-msgstr "Processing"
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "CUIT Inválido"
+msgstr "Invalid Tax ID"
 
 #. module: l10n_ar_pos_valid_cuit
-msgid "Vamos a validar el CUIT ingresado"
-msgstr "We are going to validate the entered Tax ID"
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "Error de Validación"
+msgstr "Validation Error"
+
+#. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "Validación Padrón A5"
+msgstr "A5 Registry Validation"
+
+#. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "La validación con Padrón A5 está en desarrollo.\\nEl CUIT es válido y se guardará normalmente."
+msgstr "A5 Registry validation is under development.\\nThe Tax ID is valid and will be saved normally."

@@ -17,29 +17,41 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: l10n_ar_pos_valid_cuit
+#: model:pos.config,validate_cuit:0
+msgid "Validar CUIT"
+msgstr "Validar CUIT"
+
+#. module: l10n_ar_pos_valid_cuit
+#: model:pos.config,validate_padron_a5:0
+msgid "Validar con Padrón A5"
+msgstr "Validar con Padrón A5"
+
+#. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "Información Faltante"
 msgstr "Información Faltante"
 
 #. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "El CUIT es obligatorio"
 msgstr "El CUIT es obligatorio"
 
 #. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "CUIT Inválido"
 msgstr "CUIT Inválido"
 
 #. module: l10n_ar_pos_valid_cuit
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
 msgid "Error de Validación"
 msgstr "Error de Validación"
 
 #. module: l10n_ar_pos_valid_cuit
-msgid "Solo puede introducir: números, guiones medios, puntos o espacios"
-msgstr "Solo puede introducir: números, guiones medios, puntos o espacios"
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "Validación Padrón A5"
+msgstr "Validación Padrón A5"
 
 #. module: l10n_ar_pos_valid_cuit
-msgid "El número de CUIT debe tener 11 dígitos"
-msgstr "El número de CUIT debe tener 11 dígitos"
-
-#. module: l10n_ar_pos_valid_cuit
-msgid "El dígito verificador del CUIT es incorrecto"
-msgstr "El dígito verificador del CUIT es incorrecto"
+#: code:addons/l10n_ar_pos_valid_cuit/static/src/app/PartnerDetailsEdit.esm.js:0
+msgid "La validación con Padrón A5 está en desarrollo.\\nEl CUIT es válido y se guardará normalmente."
+msgstr "La validación con Padrón A5 está en desarrollo.\\nEl CUIT es válido y se guardará normalmente."

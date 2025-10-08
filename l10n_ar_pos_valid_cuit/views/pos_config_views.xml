@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_config_form_cuit" model="ir.ui.view">
+        <field name="name">pos.config.form.cuit</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='other_devices']" position="after">
+                <setting string="Validar CUIT" help="Validar CUIT argentino cuando se crea o edita un cliente">
+                    <field name="validate_cuit"/>
+                    <div class="content-group mt16" invisible="not validate_cuit">
+                        <div class="row">
+                            <label string="Validar con Padrón A5" for="validate_padron_a5" class="col-lg-4 o_light_label"/>
+                            <field name="validate_padron_a5"/>
+                        </div>
+                        <div class="text-muted mt8" invisible="not validate_padron_a5">
+                            Nota: La validación con Padrón A5 está en desarrollo
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
