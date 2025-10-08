@@ -1,7 +1,6 @@
 /** @odoo-module **/
 import {ErrorPopup} from "@point_of_sale/app/errors/popups/error_popup";
 import {PartnerDetailsEdit} from "@point_of_sale/app/screens/partner_list/partner_editor/partner_editor";
-import {_t} from "@web/core/l10n/translation";
 import {patch} from "@web/core/utils/patch";
 import {useService} from "@web/core/utils/hooks";
 
@@ -19,8 +18,8 @@ patch(PartnerDetailsEdit.prototype, {
         // VALIDACIÓN 1: Campo requerido (solo si validación está habilitada)
         if (validateCuit && !this.changes.vat) {
             return this.popup.add(ErrorPopup, {
-                title: _t("Información Faltante"),
-                body: _t("El CUIT es obligatorio"),
+                title: "Información Faltante",
+                body: "El CUIT es obligatorio",
             });
         }
         
@@ -40,7 +39,7 @@ patch(PartnerDetailsEdit.prototype, {
                         .then((validation_result) => {
                             const errorMessages = validation_result.messages || ['CUIT inválido'];
                             this.popup.add(ErrorPopup, {
-                                title: _t("CUIT Inválido"),
+                                title: "CUIT Inválido",
                                 body: errorMessages.join('\n'),
                             });
                         });
@@ -49,8 +48,8 @@ patch(PartnerDetailsEdit.prototype, {
                     if (validatePadronA5) {
                         // Mostrar mensaje de "En desarrollo" para Padrón A5
                         this.popup.add(ErrorPopup, {
-                            title: _t("Validación Padrón A5"),
-                            body: _t("La validación con Padrón A5 está en desarrollo.\nEl CUIT es válido y se guardará normalmente."),
+                            title: "Validación Padrón A5",
+                            body: "La validación con Padrón A5 está en desarrollo.\nEl CUIT es válido y se guardará normalmente.",
                         });
                         // Continuar con el guardado después del mensaje
                         setTimeout(() => {
@@ -65,8 +64,8 @@ patch(PartnerDetailsEdit.prototype, {
             .catch((error) => {
                 console.error('Error validating CUIT:', error);
                 this.popup.add(ErrorPopup, {
-                    title: _t("Error de Validación"),
-                    body: _t("Error al validar CUIT: ") + error.message,
+                    title: "Error de Validación",
+                    body: "Error al validar CUIT: " + error.message,
                 });
             });
     },
