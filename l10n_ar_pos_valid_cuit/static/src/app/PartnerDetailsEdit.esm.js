@@ -12,13 +12,52 @@ patch(PartnerDetailsEdit.prototype, {
     },
 
     async saveChanges() {
+        // Obtener representación normalizada de tipo de identificación
+        const originalTypeRaw = this.props.partner.l10n_latam_identification_type_id;
+        const newTypeRaw = this.changes.l10n_latam_identification_type_id;
+
+        const parseType = (raw) => {
+            // Puede venir como [id, name], o como número, o como objeto {id, name}
+            if (Array.isArray(raw) && raw.length >= 2) {
+                return { id: raw[0], name: raw[1] };
+            }
+            if (raw && typeof raw === 'object') {
+                return { id: raw.id || raw[0] || null, name: raw.name || raw[1] || '' };
+            }
+            if (typeof raw === 'number' || (typeof raw === 'string' && /^\d+$/.test(raw))) {
+                return { id: parseInt(raw), name: '' };
+            }
+            return { id: null, name: '' };
+        };
+
+        let originalType = parseType(originalTypeRaw);
+        let newType = parseType(newTypeRaw);
+
+        // Si falta el nombre pero tenemos id, intentamos obtener la etiqueta vía RPC
+        const fetchLabelIfMissing = async (type) => {
+            if ((!type.name || type.name === '') && type.id) {
+                try {
+                    const rec = await this.pos.orm.call('l10n_latam.identification.type', 'browse', [type.id]);
+                    if (rec && rec.length > 0) {
+                        // algunos browse devuelven dicts con 'name'
+                        type.name = rec[0].name || rec[0][1] || '';
+                    }
+                } catch (e) {
+                    // no crítico, dejamos name vacío
+                    console.debug('No se pudo obtener etiqueta de tipo de identificación:', e);
+                }
+            }
+            return type;
+        };
+
+        originalType = await fetchLabelIfMissing(originalType);
+        newType = await fetchLabelIfMissing(newType);
+
         // Mostrar popup si cambió el tipo de identificación
-        const originalType = this.props.partner.l10n_latam_identification_type_id;
-        const newType = this.changes.l10n_latam_identification_type_id;
-        if (originalType && newType && originalType[0] !== newType[0]) {
+        if (originalType.id && newType.id && originalType.id !== newType.id) {
             this.popup.add(ErrorPopup, {
                 title: _t("Cambio de tipo de identificación"),
-                body: _t("Tipo seleccionado: ") + (newType[1] || ''),
+                body: _t("Tipo seleccionado: ") + (newType.name || ''),
             });
         }
 
@@ -29,8 +68,8 @@ patch(PartnerDetailsEdit.prototype, {
 
         const vat = this.changes.vat.toString().trim();
         // Determinar etiqueta de tipo (si está presente)
-        const idTypeLabel = (newType && newType[1]) || (originalType && originalType[1]) || '';
-        const idTypeLower = idTypeLabel.toLowerCase();
+    const idTypeLabel = (newType && newType.name) || (originalType && originalType.name) || '';
+    const idTypeLower = (idTypeLabel || '').toLowerCase();
 
         try {
             if (idTypeLower.includes('cuit') || idTypeLower.includes('cuil')) {
@@ -81,10 +120,7 @@ patch(PartnerDetailsEdit.prototype, {
             });
         }
 
-        // Si la validación pasó, continuar con el guardado normal
-        return super.saveChanges();
-        
-        // Si la validación pasó o no se requería, continuar con el guardado normal
-        return super.saveChanges();
+    // Si la validación pasó, continuar con el guardado normal
+    return super.saveChanges();
     },
 });
