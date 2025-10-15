@@ -1,6 +1,7 @@
 /** @odoo-module **/
 import {ErrorPopup} from "@point_of_sale/app/errors/popups/error_popup";
 import {PartnerDetailsEdit} from "@point_of_sale/app/screens/partner_list/partner_editor/partner_editor";
+import {_t} from "@web/core/l10n/translation";
 import {patch} from "@web/core/utils/patch";
 import {useService} from "@web/core/utils/hooks";
 
@@ -8,77 +9,82 @@ patch(PartnerDetailsEdit.prototype, {
     setup() {
         super.setup(...arguments);
         this.popup = useService("popup");
-        this.changes.vat = this.props.partner.vat;
     },
-    saveChanges() {
-        // Verificar si la validación CUIT está habilitada en la configuración
-        const validateCuit = this.pos.config.validate_cuit;
-        const validatePadronA5 = this.pos.config.validate_padron_a5;
-        
-        // VALIDACIÓN 1: Campo requerido (solo si validación está habilitada)
-        if (validateCuit && !this.changes.vat) {
-            return this.popup.add(ErrorPopup, {
-                title: "Información Faltante",
-                body: "El CUIT es obligatorio",
+
+    async saveChanges() {
+        // Mostrar popup si cambió el tipo de identificación
+        const originalType = this.props.partner.l10n_latam_identification_type_id;
+        const newType = this.changes.l10n_latam_identification_type_id;
+        if (originalType && newType && originalType[0] !== newType[0]) {
+            this.popup.add(ErrorPopup, {
+                title: _t("Cambio de tipo de identificación"),
+                body: _t("Tipo seleccionado: ") + (newType[1] || ''),
             });
         }
-        
-        // Si validación CUIT no está habilitada, continuar normalmente
-        if (!validateCuit) {
-            return super.saveChanges.call(this);
+
+        // Si no hay vat, continuar (no hay nada que validar)
+        if (!this.changes.vat) {
+            return super.saveChanges();
         }
-        
-        // VALIDACIÓN 2: Validar CUIT argentino completo
-        this.pos.orm
-            .call("res.partner", "cuit_check", [this.changes.vat])
-            .then((result) => {
+
+        const vat = this.changes.vat.toString().trim();
+        // Determinar etiqueta de tipo (si está presente)
+        const idTypeLabel = (newType && newType[1]) || (originalType && originalType[1]) || '';
+        const idTypeLower = idTypeLabel.toLowerCase();
+
+        try {
+            if (idTypeLower.includes('cuit') || idTypeLower.includes('cuil')) {
+                // Delegar a la comprobación CUIT existente
+                const result = await this.pos.orm.call("res.partner", "cuit_check", [vat]);
                 if (!result) {
-                    // CUIT inválido - obtener mensajes específicos
-                    this.pos.orm
-                        .call("res.partner", "get_cuit_validation_messages", [this.changes.vat])
-                        .then((validation_result) => {
-                            const errorMessages = validation_result.messages || ['CUIT inválido'];
-                            this.popup.add(ErrorPopup, {
-                                title: "CUIT Inválido",
-                                body: errorMessages.join('\n'),
-                            });
-                        });
-                } else {
-                    // CUIT válido - verificar si debe validar con Padrón A5
-                    if (validatePadronA5) {
-                        // Mostrar mensaje de "En desarrollo" para Padrón A5
-                        this.popup.add(ErrorPopup, {
-                            title: "Validación Padrón A5",
-                            body: "La validación con Padrón A5 está en desarrollo.\nEl CUIT es válido y se guardará normalmente.",
-                        });
-                        // Continuar con el guardado después del mensaje
-                        setTimeout(() => {
-                            this.finalizeSave();
-                        }, 2000); // Espera 2 segundos para mostrar el mensaje
-                    } else {
-                        // Solo validación CUIT - proceder directamente
-                        this.finalizeSave();
-                    }
+                    const validation_result = await this.pos.orm.call(
+                        "res.partner",
+                        "get_cuit_validation_messages",
+                        [vat]
+                    );
+                    const errorMessages = validation_result.messages || ['CUIT inválido'];
+                    return this.popup.add(ErrorPopup, {
+                        title: _t("CUIT/CUIL Inválido"),
+                        body: _t("El CUIT/CUIL ingresado no es válido:\n") + errorMessages.join('\n'),
+                    });
                 }
-            })
-            .catch((error) => {
-                console.error('Error validating CUIT:', error);
-                this.popup.add(ErrorPopup, {
-                    title: "Error de Validación",
-                    body: "Error al validar CUIT: " + error.message,
-                });
+            } else if (idTypeLower.includes('dni')) {
+                // Validar DNI usando el nuevo endpoint
+                const result = await this.pos.orm.call("res.partner", "dni_check", [vat]);
+                if (!result) {
+                    const validation_result = await this.pos.orm.call(
+                        "res.partner",
+                        "get_dni_validation_messages",
+                        [vat]
+                    );
+                    const errorMessages = validation_result.messages || ['DNI inválido'];
+                    return this.popup.add(ErrorPopup, {
+                        title: _t("DNI Inválido"),
+                        body: _t("El DNI ingresado no es válido:\n") + errorMessages.join('\n'),
+                    });
+                }
+            } else {
+                // Fallback: comprobación genérica delegada al backend
+                const result = await this.pos.orm.call("res.partner", "identification_check", [vat, idTypeLabel]);
+                if (!result) {
+                    return this.popup.add(ErrorPopup, {
+                        title: _t("Identificación Inválida"),
+                        body: _t("El valor ingresado para la identificación no parece válido."),
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error validating identification:', error);
+            return this.popup.add(ErrorPopup, {
+                title: _t("Error de Validación"),
+                body: _t("Error al validar la identificación: ") + error.message,
             });
-    },
-    
-    finalizeSave() {
-        // Normalizar CUIT (sin guiones) y guardar
-        this.pos.orm
-            .call("res.partner", "normalize_cuit", [this.changes.vat])
-            .then((normalized_cuit) => {
-                // Actualizar con CUIT sin guiones
-                this.changes.vat = normalized_cuit;
-                // Continuar con el guardado
-                super.saveChanges.call(this);
-            });
+        }
+
+        // Si la validación pasó, continuar con el guardado normal
+        return super.saveChanges();
+        
+        // Si la validación pasó o no se requería, continuar con el guardado normal
+        return super.saveChanges();
     },
 });
